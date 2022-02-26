@@ -12,19 +12,6 @@ module RailsAdmin
 
     config.action_dispatch.rescue_responses['RailsAdmin::ActionNotAllowed'] = :forbidden
 
-    initializer 'RailsAdmin precompile hook', group: :all do |app|
-      if defined?(Sprockets)
-        app.config.assets.precompile += %w[
-          rails_admin/application.js
-          rails_admin/application.css
-        ]
-        app.config.assets.paths << RailsAdmin::Engine.root.join('src')
-        require 'rails_admin/support/esmodule_preprocessor'
-        Sprockets.register_preprocessor 'application/javascript', RailsAdmin::ESModulePreprocessor
-      end
-      self.importmap = Importmap::Map.new.draw(app.root.join('config/importmap.rails_admin.rb')) if defined?(Importmap)
-    end
-
     initializer 'RailsAdmin reload config in development' do |app|
       config.initializer_path = app.root.join('config/initializers/rails_admin.rb')
 
@@ -76,6 +63,20 @@ module RailsAdmin
 
       # Force route reload, since it doesn't reflect RailsAdmin action configuration yet
       app.reload_routes!
+
+      # Configure asset delivery
+      case RailsAdmin.config.asset_source
+      when :sprockets
+        app.config.assets.precompile += %w[
+          rails_admin/application.js
+          rails_admin/application.css
+        ]
+        app.config.assets.paths << RailsAdmin::Engine.root.join('src')
+        require 'rails_admin/support/esmodule_preprocessor'
+        Sprockets.register_preprocessor 'application/javascript', RailsAdmin::ESModulePreprocessor
+      when :importmap
+        self.importmap = Importmap::Map.new.draw(app.root.join('config/importmap.rails_admin.rb'))
+      end
     end
   end
 end

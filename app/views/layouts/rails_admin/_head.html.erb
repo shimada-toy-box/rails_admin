@@ -4,14 +4,17 @@
 <meta content="NONE,NOARCHIVE" name="robots"/>
 <%= csrf_meta_tag %>
 <% case RailsAdmin::config.asset_source
-   when :webpacker %>
+   when :sprockets %>
+   <% handle_asset_dependency_error do %>
+     <%= stylesheet_link_tag "rails_admin/application.css", media: :all %>
+     <%= javascript_include_tag "rails_admin/application.js", async: true %>
+   <% end %>
+<% when :webpacker %>
   <%= stylesheet_pack_tag "rails_admin" %>
   <%= javascript_pack_tag "rails_admin", async: true %>
-<% when :webpack, :sprockets %>
-  <% handle_asset_dependency_error do %>
-    <%= stylesheet_link_tag "rails_admin/application.css", media: :all %>
-    <%= javascript_include_tag "rails_admin/application.js", async: true %>
-  <% end %>
+<% when :webpack %>
+  <%= stylesheet_link_tag "rails_admin.css", media: :all %>
+  <%= javascript_include_tag "rails_admin.js", async: true %>
 <% when :importmap %>
   <%= stylesheet_link_tag "rails_admin.css", media: :all %>
   <%= javascript_inline_importmap_tag(RailsAdmin::Engine.importmap.to_json(resolver: self)) %>
